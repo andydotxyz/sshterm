@@ -41,13 +41,12 @@ func main() {
 	img.FillMode = canvas.ImageFillContain
 	img.Translucency = 0.95
 
-	t := &termResizer{term: terminal.New(), win: w}
+	t := &termResizer{win: w}
 	t.ExtendBaseWidget(t)
-	w.SetContent(container.NewMax(bg, t, t.term, img))
+	w.SetContent(container.NewMax(bg, t, img))
 
 	cellSize := guessCellSize()
 	w.Resize(fyne.NewSize(cellSize.Width*80, cellSize.Height*24))
-	w.Canvas().Focus(t.term)
 
 	askForSSH(t, w, a)
 	w.ShowAndRun()
@@ -139,7 +138,15 @@ func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) 
 			time.Sleep(100*time.Millisecond)
 			t.Tapped(nil) // focus/mobile keyboard workaround
 		}()
+
+		t.term = terminal.New()
+		c := w.Content().(*fyne.Container)
+		w.SetContent(container.NewMax(c.Objects[0], c.Objects[1], t.term, c.Objects[len(c.Objects)-1]))
+
 		_ = t.term.RunWithConnection(in, out)
+
+		t.term = nil
+		w.SetContent(container.NewMax(c.Objects[0], c.Objects[1], c.Objects[len(c.Objects)-1]))
 		askForSSH(t, w, a)
 	}()
 }
