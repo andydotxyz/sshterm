@@ -6,12 +6,14 @@ import (
 	"image/color"
 	"log"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/driver/mobile"
 	"fyne.io/fyne/v2/widget"
 
 	"golang.org/x/crypto/ssh"
@@ -25,6 +27,7 @@ type termResizer struct {
 
 	term *terminal.Terminal
 	sess *ssh.Session
+	win  fyne.Window
 }
 
 func main() {
@@ -38,9 +41,9 @@ func main() {
 	img.FillMode = canvas.ImageFillContain
 	img.Translucency = 0.95
 
-	t := &termResizer{term: terminal.New()}
+	t := &termResizer{term: terminal.New(), win: w}
 	t.ExtendBaseWidget(t)
-	w.SetContent(container.NewMax(bg, t, img, t.term))
+	w.SetContent(container.NewMax(bg, t, t.term, img))
 
 	cellSize := guessCellSize()
 	w.Resize(fyne.NewSize(cellSize.Width*80, cellSize.Height*24))
@@ -80,6 +83,13 @@ func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
 			runSSH(host.Text, user.Text, pass.Text, t, w, a)
 		}, w)
 	w.Canvas().Focus(host)
+}
+
+func (r *termResizer) Tapped(_ *fyne.PointEvent) {
+	r.win.Canvas().Focus(r.term)
+	if mob, ok := fyne.CurrentDevice().(mobile.Device); ok {
+		mob.ShowVirtualKeyboard()
+	}
 }
 
 func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) {
@@ -125,6 +135,10 @@ func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) 
 	go session.Run("$SHELL || bash")
 
 	go func() {
+		go func() {
+			time.Sleep(100*time.Millisecond)
+			t.Tapped(nil) // focus/mobile keyboard workaround
+		}()
 		_ = t.term.RunWithConnection(in, out)
 		askForSSH(t, w, a)
 	}()
