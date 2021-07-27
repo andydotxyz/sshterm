@@ -32,6 +32,7 @@ type termResizer struct {
 
 func main() {
 	a := app.New()
+	a.Settings().SetTheme(newTermTheme())
 	w := a.NewWindow("SSH Terminal")
 	a.SetIcon(resourceIconPng)
 	w.SetPadded(false)
