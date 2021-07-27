@@ -3,6 +3,7 @@
 package main
 
 import (
+	"flag"
 	"image/color"
 	"log"
 	"strings"
@@ -25,12 +26,17 @@ import (
 type termResizer struct {
 	widget.Icon
 
-	term *terminal.Terminal
-	sess *ssh.Session
-	win  fyne.Window
+	term  *terminal.Terminal
+	debug bool
+	sess  *ssh.Session
+	win   fyne.Window
 }
 
 func main() {
+	var debug bool
+	flag.BoolVar(&debug, "debug", false, "Show terminal debug messages")
+	flag.Parse()
+
 	a := app.New()
 	a.Settings().SetTheme(newTermTheme())
 	w := a.NewWindow("SSH Terminal")
@@ -42,7 +48,7 @@ func main() {
 	img.FillMode = canvas.ImageFillContain
 	img.Translucency = 0.95
 
-	t := &termResizer{win: w}
+	t := &termResizer{win: w, debug: debug}
 	t.ExtendBaseWidget(t)
 	w.SetContent(container.NewMax(bg, t, img))
 
@@ -136,11 +142,12 @@ func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) 
 
 	go func() {
 		go func() {
-			time.Sleep(100*time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 			t.Tapped(nil) // focus/mobile keyboard workaround
 		}()
 
 		t.term = terminal.New()
+		t.term.SetDebug(t.debug)
 		c := w.Content().(*fyne.Container)
 		w.SetContent(container.NewMax(c.Objects[0], c.Objects[1], t.term, c.Objects[len(c.Objects)-1]))
 
