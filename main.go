@@ -13,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
@@ -36,7 +37,7 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "Show terminal debug messages")
 	flag.Parse()
 
-	a := app.New()
+	a := app.NewWithID("xyz.andy.sshterm2")
 	a.Settings().SetTheme(newTermTheme())
 	w := a.NewWindow("SSH Terminal")
 	a.SetIcon(resourceIconPng)
@@ -71,8 +72,8 @@ func (r *termResizer) Resize(s fyne.Size) {
 }
 
 func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
-	host := widget.NewEntry()
-	user := widget.NewEntry()
+	host := widget.NewEntryWithData(binding.BindPreferenceString("login.host", a.Preferences()))
+	user := widget.NewEntryWithData(binding.BindPreferenceString("login.user", a.Preferences()))
 	pass := widget.NewPasswordEntry()
 
 	dialog.ShowForm("SSH Connection Details", "Connect", "Cancel",
@@ -88,7 +89,11 @@ func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
 
 			runSSH(host.Text, user.Text, pass.Text, t, w, a)
 		}, w)
-	w.Canvas().Focus(host)
+	if host.Text == "" {
+		w.Canvas().Focus(host)
+	} else {
+		w.Canvas().Focus(pass)
+	}
 }
 
 func (r *termResizer) Tapped(_ *fyne.PointEvent) {
