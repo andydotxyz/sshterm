@@ -14,7 +14,6 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/driver/mobile"
 	"fyne.io/fyne/v2/widget"
 
 	"golang.org/x/crypto/ssh"
@@ -50,7 +49,7 @@ func main() {
 
 	t := &termResizer{win: w, debug: debug}
 	t.ExtendBaseWidget(t)
-	w.SetContent(container.NewMax(bg, t, img))
+	w.SetContent(container.NewMax(bg, img, t))
 
 	cellSize := guessCellSize()
 	w.Resize(fyne.NewSize(cellSize.Width*80, cellSize.Height*24))
@@ -60,6 +59,7 @@ func main() {
 }
 
 func (r *termResizer) Resize(s fyne.Size) {
+	r.Icon.Resize(s)
 	if r.sess == nil {
 		return
 	}
@@ -93,9 +93,6 @@ func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
 
 func (r *termResizer) Tapped(_ *fyne.PointEvent) {
 	r.win.Canvas().Focus(r.term)
-	if mob, ok := fyne.CurrentDevice().(mobile.Device); ok {
-		mob.ShowVirtualKeyboard()
-	}
 }
 
 func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) {
