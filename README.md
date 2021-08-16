@@ -11,4 +11,5 @@ A remote terminal over SSH using Fyne.
 
 It looks kind of nice:
 
-![](img/screenshot.png)
+![](img/screenshot1.png)
+![](img/screenshot2.png)
