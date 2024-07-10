@@ -44,7 +44,7 @@ func main() {
 	w.SetPadded(false)
 
 	bg := canvas.NewRectangle(color.Gray{Y: 0x16})
-	img := canvas.NewImageFromResource(data.FyneScene)
+	img := canvas.NewImageFromResource(data.FyneLogo)
 	img.FillMode = canvas.ImageFillContain
 	img.Translucency = 0.95
 
