@@ -76,7 +76,7 @@ func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
 	user := widget.NewEntryWithData(binding.BindPreferenceString("login.user", a.Preferences()))
 	pass := widget.NewPasswordEntry()
 
-	dialog.ShowForm("SSH Connection Details", "Connect", "Clear",
+	d := dialog.NewForm("SSH Connection Details", "Connect", "Clear",
 		[]*widget.FormItem{
 			widget.NewFormItem("Host", host),
 			widget.NewFormItem("Username", user),
@@ -91,6 +91,18 @@ func askForSSH(t *termResizer, w fyne.Window, a fyne.App) {
 
 			runSSH(host.Text, user.Text, pass.Text, t, w, a)
 		}, w)
+	d.Show()
+
+	host.OnSubmitted = func(_ string) {
+		w.Canvas().Focus(user)
+	}
+	user.OnSubmitted = func(_ string) {
+		w.Canvas().Focus(pass)
+	}
+	pass.OnSubmitted = func(_ string) {
+		d.Submit()
+	}
+
 	if host.Text == "" {
 		w.Canvas().Focus(host)
 	} else {
