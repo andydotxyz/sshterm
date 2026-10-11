@@ -6,7 +6,7 @@ import (
 	"flag"
 	"image/color"
 	"log"
-	"strings"
+	"net"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -114,10 +114,15 @@ func (r *termResizer) Tapped(_ *fyne.PointEvent) {
 	r.win.Canvas().Focus(r.term)
 }
 
-func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) {
-	if !strings.Contains(host, ":") {
-		host = host + ":22"
+func ensurePort(host string) string {
+	if _, _, err := net.SplitHostPort(host); err == nil {
+		return host
 	}
+	return net.JoinHostPort(host, "22")
+}
+
+func runSSH(host, user, pass string, t *termResizer, w fyne.Window, a fyne.App) {
+	host = ensurePort(host)
 	config := &ssh.ClientConfig{
 		User: user,
 		Auth: []ssh.AuthMethod{
